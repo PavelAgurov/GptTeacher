@@ -12,8 +12,9 @@ import re
 from redlines import Redlines  
 import datetime
 from streamlit_utils import streamlit_hack_disable_textarea_submit, streamlit_hack_remove_top_space
-from string_consts import how_it_work, header_str, todo_string, SENTENCE_SUFFIX_LIST, enter_key_info_message, \
+from string_consts import how_it_work, header_str, SENTENCE_SUFFIX_LIST, enter_key_info_message, \
                     correct_answer_message, gpt_key_usage_warning, url_params_info_string
+from todo_string import todo_string
 from prompt_templates import generation_template, check_prompt_template, get_level_and_type_for_prompt
 
 st.set_page_config(page_title= header_str, layout="wide")
@@ -102,7 +103,7 @@ with tab_debug:
 
 with st.sidebar:
     info_container  = st.container()
-    type_input      = st.selectbox("Sentence type:", key="stype", options=["Statement", "Questions"], index=1)
+    type_input      = st.selectbox("Sentence type:", key="stype", options=["Statement", "Questions"], index= 0)
     words_container = st.expander(label="Help me with words")
 
 header_container.markdown(how_it_work, unsafe_allow_html=True)

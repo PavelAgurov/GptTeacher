@@ -4,12 +4,6 @@ Plese note - it's still POC.
 """
 header_str = "Gpt Language Trainer"
 
-todo_string = """\
-            1. List "I want to learn words" - system should use some words from this list
-            2. History
-            3. Report bug button
-"""
-
 SENTENCE_SUFFIX_LIST = ['.', '!', '?']
 
 enter_key_info_message = '<p style="color:white; background-color:red">Enter your Gpt key on Settings tab</p>'
