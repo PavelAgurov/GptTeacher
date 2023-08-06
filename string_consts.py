@@ -1,5 +1,5 @@
 how_it_work = """\
-Enter your translation of proposed text, click Check and wait for Gpt validation and advice.
+Enter your translation of proposed text, click Ctrl+Enter and wait for Gpt validation and advice.
 Plese note - it's still POC.
 """
 header_str = "Gpt Language Trainer"
