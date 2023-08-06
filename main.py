@@ -6,6 +6,7 @@ from langchain import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.schema.output_parser import StrOutputParser
 from langchain.cache import SQLiteCache
+from langchain.callbacks import get_openai_callback
 import json
 import os
 import re
@@ -26,6 +27,7 @@ SESSION_SAVED_SENTENCE   = 'saved_sentence'
 SESSION_SAVED_WORDS_DF   = 'saved_words'
 SESSION_CORRECT_SENTENCE = 'correct_sentence'
 SESSION_EXPLANATION      = 'explanation'
+SESSION_TOKEN_COUNT      = 'token_count'
 
 if SESSION_SAVED_USER_INPUT not in st.session_state:
     st.session_state[SESSION_SAVED_USER_INPUT] = ""
@@ -39,6 +41,8 @@ if SESSION_CORRECT_SENTENCE not in st.session_state:
     st.session_state[SESSION_CORRECT_SENTENCE] = ""
 if SESSION_EXPLANATION not in st.session_state:
     st.session_state[SESSION_EXPLANATION] = ""
+if SESSION_TOKEN_COUNT not in st.session_state:
+    st.session_state[SESSION_TOKEN_COUNT] = 0
 
 @st.cache_data
 def get_default_gpt_key():
@@ -84,8 +88,8 @@ with tab_main:
     next_button  = st.button(label= "Next" , on_click= on_next_button_click , key="next_button", use_container_width=True )
 
 with tb_settings:
-    gpt_key_input    = st.text_input("Your Gpt key: ",  value = get_default_gpt_key(), type='password')
     gpt_key_info     = st.info(gpt_key_usage_warning)
+    gpt_key_input    = st.text_input("Your Gpt key: ",  value = get_default_gpt_key(), type='password')
     lang_my_input    = st.text_input("I speak: ",  value = from_lang_default_value)
     lang_learn_input = st.text_input("I learn: ", value = to_lang_default_value)
     level_input      = st.selectbox("Level:", key="slevel", options=["Simple", "Medium", "Advanced"], index=1)
@@ -105,6 +109,7 @@ with st.sidebar:
     info_container  = st.container()
     type_input      = st.selectbox("Sentence type:", key="stype", options=["Statement", "Questions"], index= 0)
     words_container = st.expander(label="Help me with words")
+    token_count     = st.empty()
 
 header_container.markdown(how_it_work, unsafe_allow_html=True)
 streamlit_hack_remove_top_space()
@@ -157,12 +162,14 @@ generated_sentence = st.session_state[SESSION_SAVED_SENTENCE]
 # not generated yet and it's not checking
 if not generated_sentence and not run_check:
     status_container.markdown('Generate sentence...')
-    generated_sentence_result = generation_chain.invoke({
-            "level_and_type" : get_level_and_type_for_prompt(level_input, type_input), 
-            "lang_learn" : lang_learn_input,
-            "lang_my": lang_my_input,
-            "random" : now_str
-        })
+    with get_openai_callback() as cb:
+        generated_sentence_result = generation_chain.invoke({
+                "level_and_type" : get_level_and_type_for_prompt(level_input, type_input), 
+                "lang_learn" : lang_learn_input,
+                "lang_my": lang_my_input,
+                "random" : now_str
+            })
+    st.session_state[SESSION_TOKEN_COUNT] += cb.total_tokens
     status_container.markdown(' ')
     init_json_container.markdown(generated_sentence_result)
     try:
@@ -190,12 +197,14 @@ original_container.markdown(st.session_state[SESSION_SAVED_SENTENCE])
 # if we have user input and it's checking - run validation
 if saved_user_input and run_check:
     status_container.markdown('Validation...')
-    validation_result = validation_chain.run(
-            input_sentence = st.session_state[SESSION_SAVED_SENTENCE],  
-            translation    = saved_user_input, 
-            lang_learn     = lang_learn_input,
-            lang_my        = lang_my_input
-    )
+    with get_openai_callback() as cb:
+        validation_result = validation_chain.run(
+                input_sentence = st.session_state[SESSION_SAVED_SENTENCE],  
+                translation    = saved_user_input, 
+                lang_learn     = lang_learn_input,
+                lang_my        = lang_my_input
+        )
+    st.session_state[SESSION_TOKEN_COUNT] += cb.total_tokens
     status_container.markdown(' ')
     validate_json_container.markdown(validation_result)
 
@@ -248,3 +257,4 @@ else:
     correct_container.markdown('', unsafe_allow_html=True)
     explain_container.markdown('', unsafe_allow_html=True)
 
+token_count.markdown(f'Tokens used: {st.session_state[SESSION_TOKEN_COUNT]}')
