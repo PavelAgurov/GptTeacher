@@ -17,3 +17,11 @@ enter_key_info_message = '<p style="color:white; background-color:red">Enter you
 correct_answer_message = '<p style="color:green;">Correct!</p>'
 
 gpt_key_usage_warning  = "Your key is only used in your browser. If you refresh the page - enter the key again."
+
+url_params_info_string = """\
+URL parameters:
+- from - "I speak" value
+- to   - "I learn" value
+
+Example: /from=Russian&To=German
+"""

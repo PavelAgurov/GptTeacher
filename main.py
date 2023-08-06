@@ -13,7 +13,7 @@ from redlines import Redlines
 import datetime
 from streamlit_utils import streamlit_hack_disable_textarea_submit, streamlit_hack_remove_top_space
 from string_consts import how_it_work, header_str, todo_string, SENTENCE_SUFFIX_LIST, enter_key_info_message, \
-                    correct_answer_message, gpt_key_usage_warning
+                    correct_answer_message, gpt_key_usage_warning, url_params_info_string
 from prompt_templates import generation_template, check_prompt_template, get_level_and_type_for_prompt
 
 st.set_page_config(page_title= header_str, layout="wide")
@@ -70,7 +70,7 @@ if "to" in query_params:
     to_lang_default_value = query_params["to"][0].strip("\"")
 
 header_container = st.container()
-tab_main, tb_settings, tab_todo, tab_debug = st.tabs(["Main", "Settings", "TODO", "Debug"])
+tab_main, tb_settings, tab_todo, tab_usage, tab_debug = st.tabs(["Main", "Settings", "TODO", "Usage", "Debug"])
 
 with tab_main:
     status_container   = st.empty()
@@ -80,11 +80,7 @@ with tab_main:
     correct_container  = st.container().empty()
     explain_container  = st.empty()
     _  = st.empty().divider()
-    col1, col2 = st.columns(2)
-    with col1:
-        check_button = st.button(label= "Check", on_click= on_check_button_click, key="check_button")
-    with col2:
-        next_button  = st.button(label= "Next" , on_click= on_next_button_click , key="next_button" )
+    next_button  = st.button(label= "Next" , on_click= on_next_button_click , key="next_button", use_container_width=True )
 
 with tb_settings:
     gpt_key_input    = st.text_input("Your Gpt key: ",  value = get_default_gpt_key(), type='password')
@@ -95,6 +91,9 @@ with tb_settings:
 
 with tab_todo:
     st.info(todo_string)
+
+with tab_usage:
+    st.info(url_params_info_string)
 
 with tab_debug:
     init_json_container     = st.expander(label="JSON init")
