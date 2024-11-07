@@ -34,7 +34,7 @@ def streamlit_hack_remove_top_space():
     st.markdown("""
         <style>
                .block-container {
-                    padding-top: 1rem;
+                    padding-top: 2rem;
                 }
         </style>
         """, unsafe_allow_html=True)
@@ -47,3 +47,15 @@ def streamlit_hack_remove_top_space():
         </style>
         """, unsafe_allow_html=True)
 
+def streamlit_hide_main_menu():
+
+    if st.secrets.has_key('ALLOW_MAIN_MEMU'):
+        return
+
+    hide_streamlit_style = """
+            <style>
+            [data-testid="stToolbar"] {visibility: hidden !important;}
+            footer {visibility: hidden !important;}
+            </style>
+            """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)

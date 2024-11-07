@@ -1,6 +1,9 @@
-langchain
-openai
 streamlit
+langchain
 tiktoken
+openai
+langchain_openai
+langchain_core
+langchain_community
 sentence-transformers
 Redlines

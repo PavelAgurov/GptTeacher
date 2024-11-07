@@ -1,0 +1,9 @@
+{
+    "pylint.args": ["--rcfile=./src"],
+
+    "files.exclude": {
+	"**/.*": true,
+	"**/__pycache__" : true,
+        ".*": true,
+    }
+}

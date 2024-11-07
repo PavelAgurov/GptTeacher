@@ -2,3 +2,9 @@
 /.langchain.db
 /.__pycache__
 /__pycache__
+/.langchain-cache
+/.logs
+/backend/__pycache__
+/backend/classes/__pycache__
+/backend/llm/__pycache__
+/utils/__pycache__
