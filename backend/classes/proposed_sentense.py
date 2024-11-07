@@ -12,6 +12,7 @@ class ProposedSentence:
         Proposed Sentence class
     """
     proposed_sentence   : str
+    translation         : str
     proposed_words_list : list[list[str]]
     used_tokens         : int
     

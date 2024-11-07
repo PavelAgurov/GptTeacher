@@ -8,6 +8,7 @@ import os
 import json
 import logging
 import datetime
+import random
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
@@ -39,13 +40,8 @@ class Core:
                 database_path=os.path.join(".langchain-cache", ".langchain.db")
             )
         )
-
-        self.llm_random = ChatOpenAI(
-                openai_api_key= gpt_key_input,
-                model_name  = "gpt-4o-mini", 
-                temperature = 0.9, 
-                max_tokens  = 1000
-        )
+        
+        self.gpt_key_input = gpt_key_input
         
         self.llm_fixed = ChatOpenAI(
                 openai_api_key= gpt_key_input,
@@ -54,69 +50,68 @@ class Core:
                 max_tokens  = 1000
         )
 
+        self.llm_generation = ChatOpenAI(
+                openai_api_key= self.gpt_key_input,
+                model_name  = "gpt-4o-mini",
+                temperature = 0.8,
+                max_tokens  = 1000
+        )
+
+
     def get_next_sentence(self, 
             level_input : str, 
             type_input : str,
             to_lang_value : str,
-            from_lang_value : str,
-            use_words : list[str]
+            from_lang_value : str
         ) -> ProposedSentence:
         """"
             Get the next sentence
         """
-        generation_prompt  = PromptTemplate.from_template(prompt_templates.generation_template)
-        generation_chain  = generation_prompt | self.llm_random | StrOutputParser()
-        
-        now_str = datetime.datetime.now().strftime('%F %T.%f')[:-3]
-        
-        
-# run_check = st.session_state[SESSION_RUN_CHECK]
-# saved_user_input = st.session_state[SESSION_SAVED_USER_INPUT]
-# generated_sentence = st.session_state[SESSION_SAVED_SENTENCE]
-
-# used_words_input_str = used_words_input.strip()
-# if used_words_input_str:
-# #    use_words = f"Please create sentences in way that after translation they contain one or many words from this list: [{used_words_input_str}]"
-#     use_words = f"Sentences must contain one or many words from this list: [{used_words_input_str}]"
-# else:
-#     use_words = ""
-        
-        
-        use_words_str = ""
-        if use_words is not None:
-            use_words_str = ", ".join(use_words)
-            use_words_str = f"Always use words: {use_words_str}"
-        
         total_tokens = 0
+        
+        generation_prompt  = PromptTemplate.from_template(prompt_templates.generation_template)
+        generation_chain  = generation_prompt | self.llm_generation | StrOutputParser()
         with get_openai_callback() as cb:
             generated_sentence_result = generation_chain.invoke({
                     "level_and_type" : prompt_templates.get_level_and_type_for_prompt(level_input, type_input), 
                     "lang_learn"     : to_lang_value,
                     "lang_my"        : from_lang_value,
-                    "random"         : now_str,
-                    "use_words"      : use_words_str
+                    "random"         : str(random.randint(0, 1000))
                 })
             total_tokens = cb.total_tokens
-            
-            
-        try:
-            proposed_sentence_json = json.loads(utils_app.get_fixed_json(generated_sentence_result))
-            proposed_sentence = proposed_sentence_json['proposed_sentence']
-            proposed_words    = proposed_sentence_json['words']
-            proposed_words_list = list[list[str]]()
-            for w in proposed_words['nouns']:
+        logger.info(f"{generated_sentence_result=}")
+        generated_sentence_json = json.loads(utils_app.get_fixed_json(generated_sentence_result))
+        generated_sentence = generated_sentence_json['generated_sentence']
+
+        translation_prompt = PromptTemplate.from_template(prompt_templates.translate_template)
+        translation_chain  = translation_prompt | self.llm_fixed | StrOutputParser()
+        with get_openai_callback() as cb:
+            translated_sentence_result = translation_chain.invoke({
+                    "input_sentence": generated_sentence,
+                    "lang_learn"    : to_lang_value,
+                    "lang_my"       : from_lang_value
+                })
+            total_tokens += cb.total_tokens
+        translation_sentence_json = json.loads(utils_app.get_fixed_json(translated_sentence_result))
+        logger.info(f"{translation_sentence_json=}")
+        translation_sentence = translation_sentence_json['translation']
+        
+        translation_words = translation_sentence_json['words']
+        proposed_words_list = list[list[str]]()
+        for w in translation_words['nouns']:
+            if 'infinitive' in w and 'translation' in w:
                 proposed_words_list.append([w['infinitive'], w["translation"]])
-            for w in proposed_words['adjectives']:
+        for w in translation_words['adjectives']:
+            if 'infinitive' in w and 'translation' in w:
                 proposed_words_list.append([w['infinitive'], w["translation"]])
-            for w in proposed_words['verbs']:
+        for w in translation_words['verbs']:
+            if 'infinitive' in w and 'translation' in w:
                 proposed_words_list.append([w['infinitive'], w["translation"]])
-            for w in proposed_words['other']:
-                proposed_words_list.append([w['infinitive'], w["translation"]])
-                
-            return ProposedSentence(proposed_sentence, proposed_words_list, total_tokens)
-        except Exception as error:
-            logger.error(f"Error in get_next_sentence: {error}")
-            return None
+        # for w in translation_words['other']:
+        #     if 'infinitive' in w and 'translation' in w:
+        #         proposed_words_list.append([w['infinitive'], w["translation"]])
+        
+        return ProposedSentence(generated_sentence, translation_sentence, proposed_words_list, total_tokens)
 
     def validate_sentence(self, 
                           proposed_sentence : str, 

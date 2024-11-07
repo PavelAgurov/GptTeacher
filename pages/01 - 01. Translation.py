@@ -58,7 +58,7 @@ st.markdown(how_it_work, unsafe_allow_html=True)
 proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
 
 with st.sidebar:
-    type_input = st.selectbox("Sentence type:", key="stype", options=["Statement", "Questions"], index= 0)
+    type_input = st.selectbox("Sentence type:", key="stype", options=["Statement", "Questions", "Imperative"], index= 0)
     
     with st.expander(label="Help me with words"):
         if proposed_sentence and proposed_sentence.proposed_words_list:
@@ -123,17 +123,17 @@ next_button = st.button(label= "Next" , use_container_width=True)
 if next_button:
     st.session_state.validation_result = None
     st.session_state.translation = ""
+    
     st.session_state.proposed_sentence = core.get_next_sentence(
         main_params.level,
         type_input,
         main_params.to_lang,
-        main_params.from_lang,
-        []
+        main_params.from_lang
     )
     st.rerun()
     
 if validate_button:
-    proposed_sentence = st.session_state.proposed_sentence
+    proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
     st.session_state.translation = translation
     if not proposed_sentence or not proposed_sentence.proposed_sentence:
         st.error("Click Next to get new sentence before validation")

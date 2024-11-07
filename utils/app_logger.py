@@ -46,6 +46,7 @@ def init_root_logger():
     # )
     # file_handler.setFormatter(DateTimeFileFormatter())
     # logger.addHandler(file_handler)
-    # logger.setLevel(logging.INFO)
+    
+    logger.setLevel(logging.INFO)
 
     return logger
