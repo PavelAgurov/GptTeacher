@@ -35,10 +35,12 @@ def init_root_logger():
     stream_handler.setFormatter(ColoredConsoleFormatter())
     logger.addHandler(stream_handler)
     os.makedirs(LOG_FOLDER, exist_ok=True)
+    
+    datetime_now = datetime.now().strftime("%Y-%m-%d") 
     file_handler = logging.FileHandler(
         os.path.join(
             LOG_FOLDER,
-            f"log{datetime.now().strftime("%Y-%m-%d")}.log"
+            f"log{datetime_now}.log"
         ),
         encoding='utf-8'
     )
