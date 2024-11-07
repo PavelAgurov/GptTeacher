@@ -34,18 +34,18 @@ def init_root_logger():
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(ColoredConsoleFormatter())
     logger.addHandler(stream_handler)
-    os.makedirs(LOG_FOLDER, exist_ok=True)
-    
-    datetime_now = datetime.now().strftime("%Y-%m-%d") 
-    file_handler = logging.FileHandler(
-        os.path.join(
-            LOG_FOLDER,
-            f"log{datetime_now}.log"
-        ),
-        encoding='utf-8'
-    )
-    file_handler.setFormatter(DateTimeFileFormatter())
-    logger.addHandler(file_handler)
-    logger.setLevel(logging.INFO)
+
+    #os.makedirs(LOG_FOLDER, exist_ok=True)
+    # datetime_now = datetime.now().strftime("%Y-%m-%d") 
+    # file_handler = logging.FileHandler(
+    #     os.path.join(
+    #         LOG_FOLDER,
+    #         f"log{datetime_now}.log"
+    #     ),
+    #     encoding='utf-8'
+    # )
+    # file_handler.setFormatter(DateTimeFileFormatter())
+    # logger.addHandler(file_handler)
+    # logger.setLevel(logging.INFO)
 
     return logger
