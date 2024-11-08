@@ -53,21 +53,26 @@ class Core:
         self.llm_generation = ChatOpenAI(
                 openai_api_key= self.gpt_key_input,
                 model_name  = "gpt-4o-mini",
-                temperature = 0.8,
+                temperature = 1,
                 max_tokens  = 1000
         )
 
 
     def get_next_sentence(self, 
-            level_input : str, 
-            type_input : str,
-            to_lang_value : str,
-            from_lang_value : str
+            level_input     : str, 
+            type_input      : str,
+            to_lang_value   : str,
+            from_lang_value : str,
+            special_dict    : str
         ) -> ProposedSentence:
         """"
             Get the next sentence
         """
         total_tokens = 0
+        
+        special_dict_str = ""
+        if special_dict:
+            special_dict_str = f"The sentence MUST contain words from the list: <must_used_words>{special_dict}</must_used_words>"
         
         generation_prompt  = PromptTemplate.from_template(prompt_templates.generation_template)
         generation_chain  = generation_prompt | self.llm_generation | StrOutputParser()
@@ -76,7 +81,8 @@ class Core:
                     "level_and_type" : prompt_templates.get_level_and_type_for_prompt(level_input, type_input), 
                     "lang_learn"     : to_lang_value,
                     "lang_my"        : from_lang_value,
-                    "random"         : str(random.randint(0, 1000))
+                    "random"         : str(random.randint(0, 1000)),
+                    "special_dict"   : special_dict_str
                 })
             total_tokens = cb.total_tokens
         logger.info(f"{generated_sentence_result=}")

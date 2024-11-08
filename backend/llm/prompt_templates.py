@@ -4,6 +4,8 @@ Make me a random sentence in {lang_my} for translation into {lang_learn}.
 {level_and_type}
 Use this {random} value for seed randomization and generate different sentences.
 
+{special_dict}
+
 Provide answer in JSON format:
 {{
     "random_word" : "random word in {lang_my}",
@@ -70,6 +72,7 @@ Do not check original sentence, only check my translation.
 Don't try to make up an errors.
 Don't change my transplation too much.
 Do not tell me what I did correctly.
+Do not check input sentence, only check my translation.
 All explanations should be provided in {lang_my}.
 
 If all is correct, just write "Correct!" (in {lang_my}).

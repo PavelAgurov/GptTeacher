@@ -38,6 +38,8 @@ if 'translation' not in st.session_state:
     st.session_state.translation = ""
 if 'validation_result' not in st.session_state:
     st.session_state.validation_result = None
+if 'special_dict' not in st.session_state:
+    st.session_state.special_dict = None
 
 # ------------------------------------------ UI
 header_str = "Gpt Language Trainer"
@@ -46,11 +48,7 @@ st.title(header_str)
 
 how_it_work = """
 Enter your translation of proposed text, click Ctrl+Enter and wait for validation and advice from LLM.
-Plese note - it's still POC.
-<br/>
-You can define your level and languages on Settings page.
-<br/>
-You can find helful words on the right side.
+Plese note - it's still POC. You can define your level and languages on Settings page.
 """.strip()
 st.markdown(how_it_work, unsafe_allow_html=True)
 
@@ -79,13 +77,19 @@ if not main_params.gpt_key:
     st.stop()
 
 with st.container(border=True):
-    settings_columns = st.columns(3)
+    settings_columns = st.columns(4)
     with settings_columns[0]:
-        type_input = st.radio("type:", options=["Statement", "Questions", "Imperative"], index= 0, horizontal=True, label_visibility="collapsed")
+        type_input = st.radio("type:", options=["Statement", "Questions", "Imperative"], index= 0, label_visibility="collapsed")
     with settings_columns[1]:
-        type_cond = st.radio("type:", options=["Normal", "Conditional", "Subordinate clause"], index= 0, horizontal=True, label_visibility="collapsed")
+        type_cond = st.radio("type:", options=["Normal", "Conditional", "Subordinate clause"], index= 0, label_visibility="collapsed")
     with settings_columns[2]:
-        help_words_enabled = st.checkbox("Show help words", value= True)
+        use_special_dict = st.checkbox("Special dictionary", value= False)
+    with settings_columns[3]:
+        help_words_enabled = st.checkbox("Show word hints", value= True)
+
+if use_special_dict:
+    with st.container(border=True):
+        special_dict = st.text_area("I want to learn words (comma or lines separated):", height=100, value= st.session_state.special_dict)
 
 if help_words_enabled:
     main_columns = st.columns([2, 1])
@@ -139,12 +143,14 @@ next_button = st.button(label= "Next" , use_container_width=True)
 if next_button:
     st.session_state.validation_result = None
     st.session_state.translation = ""
+    st.session_state.special_dict = special_dict if use_special_dict else None
     
     proposed_sentence = core.get_next_sentence(
         main_params.level,
         f"{type_input} {type_cond}",
         main_params.to_lang,
-        main_params.from_lang
+        main_params.from_lang,
+        special_dict if use_special_dict else None
     )
     st.session_state.proposed_sentence = proposed_sentence
     st.session_state.token_count += proposed_sentence.used_tokens
