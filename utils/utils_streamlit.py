@@ -39,14 +39,6 @@ def streamlit_hack_remove_top_space():
         </style>
         """, unsafe_allow_html=True)
     
-    st.markdown("""
-        <style>
-               .css-1544g2n  {
-                    padding-top: 2rem;
-                }
-        </style>
-        """, unsafe_allow_html=True)
-
 def streamlit_hide_main_menu():
 
     if st.secrets.has_key('ALLOW_MAIN_MEMU'):

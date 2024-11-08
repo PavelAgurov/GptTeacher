@@ -1,4 +1,4 @@
-generation_template = """/
+generation_prompt_template = """/
 Hello! I learn {lang_learn}. 
 Make me a random sentence in {lang_my} for translation into {lang_learn}. 
 {level_and_type}
@@ -13,7 +13,7 @@ Provide answer in JSON format:
 }}
 """
 
-translate_template = """/
+translate_prompt_template = """/
 Hello! Your task is to translate the sentence from {lang_my} into {lang_learn} and give me dictionary.
 Dictionary should contain all words from the sentence with their translations in infinitive form.
 All nouns must have an article (for example "der Ort", "das Essen").
@@ -100,6 +100,21 @@ Provide answer in JSON format:
 
 """
 
+detailed_help_prompt_template = """/
+Hi! I want to translate text from {lang_my} to {lang_learn}. 
+Please provide me rules that I should use to translate concrete this text. 
+Describe rules in {lang_my}. 
+
+<input_sentence>
+{input_sentence}
+</input_sentence>
+
+Provide answer in markdown format:
+```markdown
+```
+"""
+
+
 
 def get_level_and_type_for_prompt(level, atype):
     if level == "Simple":
@@ -108,3 +123,23 @@ def get_level_and_type_for_prompt(level, atype):
         return f"Sentence should have medium complexity and have maximum 10 words and be {atype}."
     elif level == "Advanced":
         return f"Sentence should be complex and have minumum 20 words and subordinate clause and be {atype}."
+
+task01_prompt_template = """
+Please create me test sprachbausteine TELC for level {level} in {lang_learn} language.
+There are gaps in the text and need to choose the correct {test_type} for each gap fron the list of 3 options.
+Use this {random} value for seed randomization and generate different sentences.
+
+Provide answer in JSON format:
+{{
+    "tests":[
+        "test_task": "test task",
+        "options": [
+            "option 1",
+            "option 2",
+            "option 3"
+        ],
+        "correct": "index of correct answer",
+        "explanation": "detailed explanation of answer in {lang_my}"
+    ]
+}}
+"""

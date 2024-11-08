@@ -22,6 +22,17 @@ def get_fixed_json(text : str) -> str:
             return text[open_bracket+7:close_bracket].strip()
     return text
 
+def get_fixed_markdown(text : str) -> str:
+    """
+        Extract markdown from text
+    """
+    if '```markdown' in text:
+        open_bracket = text.find('```markdown')
+        close_bracket = text.rfind('```')
+        if open_bracket != -1 and close_bracket != -1:
+            return text[open_bracket+11:close_bracket].strip()
+    return text
+
 def string_to_base64(input : str) -> str:
     """
         Convert string to base64
