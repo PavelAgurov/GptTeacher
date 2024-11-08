@@ -34,7 +34,7 @@ Provide answer in JSON format:
         "adjectives":[
             {{
                 "word": "adjective from original sentence",
-                "infinitive": "adjective from original sentence in infinitive and singular form", 
+                "infinitive": "adjective from original sentence in infinitive and singular form. base form, not comparative", 
                 "translation" : "translation into {lang_learn} of infinitive and singular form"
             }}
         ],
@@ -90,7 +90,7 @@ Take into account that user can use synonyms and different word forms.
 Provide answer in JSON format:
 {{
     "correct" : "correct translated sentence in {lang_learn}",
-    "errors_explanations":[
+    "mistakes":[
         "detailed explanation of all translation mistakes (in {lang_my}) with references to the grammar rules"
     ]
 }}

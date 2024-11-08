@@ -55,18 +55,7 @@ You can find helful words on the right side.
 st.markdown(how_it_work, unsafe_allow_html=True)
 
 
-proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
-
 with st.sidebar:
-    type_input = st.selectbox("Sentence type:", key="stype", options=["Statement", "Questions", "Imperative"], index= 0)
-    
-    with st.expander(label="Help me with words"):
-        if proposed_sentence and proposed_sentence.proposed_words_list:
-            df = pd.DataFrame(proposed_sentence.proposed_words_list, columns=["Word", "Translation"])
-            st.dataframe(df, use_container_width=True, hide_index=True)
-        else:
-            st.markdown("No words to show")
-            
     st.markdown(f'Tokens used: {st.session_state.token_count}')
     used_words_container = st.expander(label="I want to learn words (separate words by comma)")
     #used_words_input = used_words_container.text_area(label="", label_visibility="hidden")
@@ -89,12 +78,37 @@ if not main_params.gpt_key:
     st.error("Enter your Gpt key on Settings tab first")
     st.stop()
 
-proposed_sentence_value = ""
-if proposed_sentence:
-    proposed_sentence_value = proposed_sentence.proposed_sentence
-st.text_input("Sentense to translate: ", value= proposed_sentence_value, disabled=True, placeholder="Click Next to get new sentence")
+with st.container(border=True):
+    settings_columns = st.columns(2)
+    with settings_columns[0]:
+        type_input = st.radio("Sentence type:", options=["Statement", "Questions", "Imperative"], index= 0, horizontal=True, label_visibility="collapsed")
+    with settings_columns[1]:
+        help_words_enabled = st.checkbox("Show help words", value= True)
 
-translation = st.text_area("Your translation: ", value= st.session_state.translation, height=100)
+if help_words_enabled:
+    main_columns = st.columns([2, 1])
+else:
+    main_columns = st.columns(1)
+
+with main_columns[0]:
+    proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
+
+    proposed_sentence_value = ""
+    if proposed_sentence:
+        proposed_sentence_value = proposed_sentence.proposed_sentence
+    st.text_input("Sentense to translate: ", value= proposed_sentence_value, disabled=True, placeholder="Click Next to get new sentence")
+
+    with st.container(border=True):
+        translation = st.text_area("Your translation: ", value= st.session_state.translation, height=100)
+
+if help_words_enabled:
+    with main_columns[1]:
+        with st.expander(label="Help words", expanded=True):
+            if proposed_sentence and proposed_sentence.proposed_words_list:
+                df = pd.DataFrame(proposed_sentence.proposed_words_list, columns=["Word", "Translation"])
+                st.dataframe(df, use_container_width=True, hide_index=True)
+            else:
+                st.text_area("Help words: ", value= "No words to show yet", label_visibility="collapsed", disabled=True)
 
 validate_button_enabled = proposed_sentence and proposed_sentence.proposed_sentence
 validate_button = st.button(label= "Validate", use_container_width=True, disabled= not validate_button_enabled)
@@ -124,12 +138,14 @@ if next_button:
     st.session_state.validation_result = None
     st.session_state.translation = ""
     
-    st.session_state.proposed_sentence = core.get_next_sentence(
+    proposed_sentence = core.get_next_sentence(
         main_params.level,
         type_input,
         main_params.to_lang,
         main_params.from_lang
     )
+    st.session_state.proposed_sentence = proposed_sentence
+    st.session_state.token_count += proposed_sentence.used_tokens
     st.rerun()
     
 if validate_button:
@@ -141,13 +157,15 @@ if validate_button:
     if not translation:
         st.error("Enter your translation before validation")
         st.stop()
-    st.session_state.validation_result = core.validate_sentence(
+    validation_result = core.validate_sentence(
         proposed_sentence.proposed_sentence,
         translation,
         main_params.to_lang,
         main_params.from_lang,
         proposed_sentence.proposed_words_list
     )
+    st.session_state.validation_result = validation_result
+    st.session_state.token_count += validation_result.used_tokens
     st.rerun()
    
 

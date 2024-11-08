@@ -146,7 +146,7 @@ class Core:
         correct : str = result_json["correct"].strip()
         correct = utils_app.remove_double_spaces(correct)
         
-        explanation = result_json["errors_explanations"]
+        explanation = result_json["mistakes"]
 
         return ValidationResult(correct, explanation, cb.total_tokens)                          
 
