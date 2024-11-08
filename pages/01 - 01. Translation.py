@@ -49,6 +49,7 @@ st.title(header_str)
 how_it_work = """
 Enter your translation of proposed text, click Ctrl+Enter and wait for validation and advice from LLM.
 Plese note - it's still POC. You can define your level and languages on Settings page.
+You can also use special dictionary to learn specific words.
 """.strip()
 st.markdown(how_it_work, unsafe_allow_html=True)
 
@@ -91,18 +92,19 @@ if use_special_dict:
     with st.container(border=True):
         special_dict = st.text_area("I want to learn words (comma or lines separated):", height=100, value= st.session_state.special_dict)
 
+proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
+
 if help_words_enabled:
     main_columns = st.columns([2, 1])
 else:
     main_columns = st.columns(1)
 
 with main_columns[0]:
-    proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
-
-    proposed_sentence_value = ""
-    if proposed_sentence:
-        proposed_sentence_value = proposed_sentence.proposed_sentence
-    st.text_input("Sentense to translate: ", value= proposed_sentence_value, disabled=True, placeholder="Click Next to get new sentence")
+    with st.container(border=True):
+        proposed_sentence_value = ""
+        if proposed_sentence:
+            proposed_sentence_value = proposed_sentence.proposed_sentence
+        st.text_area("Sentense to translate: ", value= proposed_sentence_value, disabled=True, placeholder="Click Next to get new sentence", height=80)
 
     with st.container(border=True):
         translation = st.text_area("Your translation: ", value= st.session_state.translation, height=100)
@@ -112,9 +114,9 @@ if help_words_enabled:
         with st.expander(label="Help words", expanded=True):
             if proposed_sentence and proposed_sentence.proposed_words_list:
                 df = pd.DataFrame(proposed_sentence.proposed_words_list, columns=["Word", "Translation"])
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df, use_container_width=True, hide_index=True, height=240)
             else:
-                st.text_area("Help words: ", value= "No words to show yet", label_visibility="collapsed", disabled=True)
+                st.text_area("Help words: ", value= "No words to show yet", label_visibility="collapsed", disabled=True, height=250)
 
 validate_button_enabled = proposed_sentence and proposed_sentence.proposed_sentence
 validate_button = st.button(label= "Validate", use_container_width=True, disabled= not validate_button_enabled)
