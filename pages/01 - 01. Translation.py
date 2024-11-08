@@ -79,10 +79,12 @@ if not main_params.gpt_key:
     st.stop()
 
 with st.container(border=True):
-    settings_columns = st.columns(2)
+    settings_columns = st.columns(3)
     with settings_columns[0]:
-        type_input = st.radio("Sentence type:", options=["Statement", "Questions", "Imperative"], index= 0, horizontal=True, label_visibility="collapsed")
+        type_input = st.radio("type:", options=["Statement", "Questions", "Imperative"], index= 0, horizontal=True, label_visibility="collapsed")
     with settings_columns[1]:
+        type_cond = st.radio("type:", options=["Normal", "Conditional", "Subordinate clause"], index= 0, horizontal=True, label_visibility="collapsed")
+    with settings_columns[2]:
         help_words_enabled = st.checkbox("Show help words", value= True)
 
 if help_words_enabled:
@@ -140,7 +142,7 @@ if next_button:
     
     proposed_sentence = core.get_next_sentence(
         main_params.level,
-        type_input,
+        f"{type_input} {type_cond}",
         main_params.to_lang,
         main_params.from_lang
     )
