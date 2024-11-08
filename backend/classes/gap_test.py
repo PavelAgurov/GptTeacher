@@ -23,4 +23,5 @@ class GapTestList:
     """
     tests : list[GapTest]
     total_tokens : int
+    cost         : float
     

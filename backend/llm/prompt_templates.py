@@ -65,36 +65,36 @@ Provide answer in JSON format:
 """
 
 check_prompt_template = """/
-I have translation sentence from {lang_my} into {lang_learn}.
-Please correct me if my translation is wrong and if there are errors please explain me step by step all my mistakes.
+I have proposed translation of original sentence from {lang_my} into {lang_learn}.
+Please correct me if my translation is wrong and if there are errors please explain me my mistakes.
 
-Do not check original sentence, only check my translation.
 Don't try to make up an errors.
 Don't change my transplation too much.
 Do not tell me what I did correctly.
-Do not check input sentence, only check my translation.
-All explanations should be provided in {lang_my}.
-
+Do not check original sentence, only check my translation!
+Take into account that user can use synonyms and different word forms.
 If all is correct, just write "Correct!" (in {lang_my}).
 
-Take into account that user can use synonyms and different word forms.
-<used_words>
-{used_words}
-</used_words>
 
-<input_sentence>
-{input_sentence}
-</input_sentence>
+Think about it step by step.
 
-<translation>
-{translation}
-</translation>
+All explanations should be provided in {lang_my}.
+
+Original sentence in {lang_my}:
+<original_sentence>
+{original_sentence}
+</original_sentence>
+
+Translation of this sentence in {lang_learn}:
+<proposed_translation>
+{proposed_translation}
+</proposed_translation>
 
 Provide answer in JSON format:
 {{
-    "correct" : "correct translated sentence in {lang_learn}",
+    "correct_translation" : "correctly translated original sentence in {lang_learn}",
     "mistakes":[
-        "detailed explanation of all translation mistakes (in {lang_my}) with references to the grammar rules"
+        "detailed explanation of all my translation mistakes (in {lang_my}) with references to the grammar rules"
     ]
 }}
 

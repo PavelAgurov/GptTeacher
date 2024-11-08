@@ -16,4 +16,4 @@ class ProposedSentence:
     proposed_words_list : list[list[str]]
     detailed_help       : str
     used_tokens         : int
-    
+    cost                : float

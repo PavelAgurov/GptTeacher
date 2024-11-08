@@ -11,7 +11,9 @@ class ValidationResult:
     """
         Validation Result class
     """
+    proposed_translation : str
     correct     : str 
     explanation : str
     used_tokens : int
+    cost        : float
     

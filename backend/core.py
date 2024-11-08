@@ -46,14 +46,14 @@ class Core:
         
         self.llm_fixed = ChatOpenAI(
                 openai_api_key= gpt_key_input,
-                model_name  = "gpt-4o-mini",
+                model_name  = "gpt-4o-mini-2024-07-18", # "gpt-4o-2024-08-06",
                 temperature = 0,
                 max_tokens  = 1000
         )
 
         self.llm_generation = ChatOpenAI(
                 openai_api_key= self.gpt_key_input,
-                model_name  = "gpt-4o-mini",
+                model_name  = "gpt-4o-mini-2024-07-18", # "gpt-4o-2024-08-06",
                 temperature = 1,
                 max_tokens  = 1000
         )
@@ -72,6 +72,7 @@ class Core:
             Get the next sentence
         """
         total_tokens = 0
+        total_cost = 0
         
         special_dict_str = []
         if special_dict:
@@ -90,7 +91,8 @@ class Core:
                     "random"         : str(random.randint(0, 1000)),
                     "special_dict"   : special_dict_str
                 })
-            total_tokens = cb.total_tokens
+            total_tokens += cb.total_tokens
+            total_cost   += cb.total_cost
         logger.info(f"{generated_sentence_result=}")
         generated_sentence_json = json.loads(utils_app.get_fixed_json(generated_sentence_result))
         generated_sentence = generated_sentence_json['generated_sentence']
@@ -104,6 +106,7 @@ class Core:
                     "lang_my"       : from_lang_value
                 })
             total_tokens += cb.total_tokens
+            total_cost   += cb.total_cost
         translation_sentence_json = json.loads(utils_app.get_fixed_json(translated_sentence_result))
         logger.info(f"{translation_sentence_json=}")
         translation_sentence = translation_sentence_json['translation']
@@ -136,52 +139,60 @@ class Core:
                         "lang_my"       : from_lang_value
                     })
                 total_tokens += cb.total_tokens
+                total_cost   += cb.total_cost
             detailed_help_str = utils_app.get_fixed_markdown(detailed_help_str)
             logger.info(f"{detailed_help_str=}")
         
-        return ProposedSentence(generated_sentence, translation_sentence, proposed_words_list, detailed_help_str, total_tokens)
+        return ProposedSentence(generated_sentence, translation_sentence, proposed_words_list, detailed_help_str, total_tokens, total_cost)
 
     def validate_sentence(self, 
-                          proposed_sentence : str, 
-                          translation       : str, 
+                          original_sentence : str, 
+                          proposed_translation       : str, 
                           to_lang_value     : str, 
                           from_lang_value   : str,
                           used_words        : list[str]
             ) -> ValidationResult:
         """"
             Validate the sentence
-                proposed_sentence - the sentence to validate
+                original_sentence - the sentence to validate
                 translation - the translation of the sentence from the user
         """
-        logger.info(f"validate_sentence: proposed_sentence: {proposed_sentence}, translation: {translation}, to_lang_value: {to_lang_value}, from_lang_value: {from_lang_value}")
+        logger.info(f"validate_sentence: proposed_sentence: {original_sentence}, translation: {proposed_translation}, to_lang_value: {to_lang_value}, from_lang_value: {from_lang_value}")
         
         validation_prompt = PromptTemplate.from_template(prompt_templates.check_prompt_template)
         validation_chain  = validation_prompt | self.llm_fixed | StrOutputParser()
         
+        total_tokens = 0
+        total_cost = 0
         with get_openai_callback() as cb:
             validation_result = validation_chain.invoke({
-                    "input_sentence": proposed_sentence,
-                    "translation"   : translation,
-                    "lang_learn"    : to_lang_value,
-                    "lang_my"       : from_lang_value,
-                    "used_words"    : used_words
+                    "original_sentence"    : original_sentence,
+                    "proposed_translation" : proposed_translation,
+                    "lang_learn"           : to_lang_value,
+                    "lang_my"              : from_lang_value,
+                    "used_words"           : used_words
             })
+            total_tokens = cb.total_tokens
+            total_cost = cb.total_cost
         
         logger.info(f"validate_sentence: {validation_result=}")
                        
         result_json = json.loads(utils_app.get_fixed_json(validation_result))
         
-        correct : str = result_json["correct"].strip()
+        correct : str = result_json["correct_translation"].strip()
         correct = utils_app.remove_double_spaces(correct)
         
         explanation = result_json["mistakes"]
 
-        return ValidationResult(correct, explanation, cb.total_tokens)                
+        return ValidationResult(proposed_translation, correct, explanation, total_tokens, total_cost)                
 
     def fix_suffixes(self, proposed_sentence_str : str,  correct_str: str):
         """"
             Fix the suffixes
         """
+        if not proposed_sentence_str or not correct_str:
+            return proposed_sentence_str, correct_str
+        
         correct_suffix = correct_str[-1]
         user_suffix    = proposed_sentence_str[-1]
         if correct_suffix in Core.SENTENCE_SUFFIX_LIST:
@@ -199,6 +210,7 @@ class Core:
         task_chain  = task_prompt | self.llm_fixed | StrOutputParser()
         
         total_tokens = 0
+        total_cost   = 0
         with get_openai_callback() as cb:
             result = task_chain.invoke({
                     "lang_my"     : from_lang_value,
@@ -208,6 +220,7 @@ class Core:
                     "random"      : str(random.randint(0, 1000))
             })
             total_tokens = cb.total_tokens
+            total_cost   = cb.total_cost
             
         result = utils_app.get_fixed_json(result)
         result = result.replace("\n", "")
@@ -222,5 +235,5 @@ class Core:
             explanation = test["explanation"]
             tests.append(GapTest(test_task, options, correct, explanation))
         
-        return GapTestList(tests, total_tokens)
+        return GapTestList(tests, total_tokens, total_cost)
         

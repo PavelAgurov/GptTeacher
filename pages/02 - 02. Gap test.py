@@ -7,8 +7,6 @@
 import logging
 
 import streamlit as st
-import pandas as pd
-from redlines import Redlines
 
 from backend.core import Core
 from backend.classes.main_params import MainParams

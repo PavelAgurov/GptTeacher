@@ -29,6 +29,8 @@ if 'main_params' not in st.session_state:
     st.session_state.main_params = MainParams.Empty()
 if 'token_count' not in st.session_state:
     st.session_state.token_count = 0
+if 'token_cost' not in st.session_state:
+    st.session_state.token_cost = 0
 if 'back_end_core' not in st.session_state:
     st.session_state.back_end_core = None
 
@@ -58,6 +60,7 @@ st.title(header_str, help= how_it_work)
 
 with st.sidebar:
     st.markdown(f'Tokens used: {st.session_state.token_count}')
+    st.markdown(f'Tokens cost: {st.session_state.token_cost:.2f}')
 
 utils_streamlit.streamlit_hack_remove_top_space()
 
@@ -156,7 +159,7 @@ validate_button_enabled = proposed_sentence and proposed_sentence.proposed_sente
 validate_button = st.button(label= "Validate", use_container_width=True, disabled= not validate_button_enabled)
 
 validation_result : ValidationResult = st.session_state.validation_result
-if validation_result:
+if validation_result and validation_result.proposed_translation == translation:
     correct_str = utils_app.remove_double_spaces(validation_result.correct).strip()
     translation_str = utils_app.remove_double_spaces(translation).strip()
     
@@ -201,6 +204,7 @@ if next_button:
     )
     st.session_state.proposed_sentence = proposed_sentence
     st.session_state.token_count += proposed_sentence.used_tokens
+    st.session_state.token_cost += proposed_sentence.cost
     st.rerun()
     
 if validate_button:
@@ -221,6 +225,7 @@ if validate_button:
     )
     st.session_state.validation_result = validation_result
     st.session_state.token_count += validation_result.used_tokens
+    st.session_state.token_cost += validation_result.cost
     st.rerun()
    
 
