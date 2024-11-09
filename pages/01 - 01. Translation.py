@@ -77,7 +77,7 @@ if not core:
 # ------------------------------------------ Params
 
 TYPE_INPUT_LIST = ["Statement", "Questions", "Imperative"]
-TYPE_COND_LIST  = ["Normal", "Conditional", "Subordinate clause"]
+TYPE_COND_LIST  = ["Normal", "Conditional", "Subordinate clause", "Infinitive constructions"]
 DICT_TYPE_LIST  = ["Random",  "Topic", "Special dictionary"]
 EXTRA_LIST = ["Help words", "Detailed help"]
 
