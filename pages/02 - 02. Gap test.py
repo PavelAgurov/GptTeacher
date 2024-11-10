@@ -5,6 +5,7 @@
 # pylint: disable=C0301,C0103,C0303,C0304,C0305,C0411,E1121
 
 import logging
+from redlines import Redlines
 
 import streamlit as st
 
@@ -31,6 +32,8 @@ if 'back_end_core' not in st.session_state:
     
 if 'task_list' not in st.session_state:
     st.session_state.task_list = None
+if 'show_answers' not in st.session_state:
+    st.session_state.show_answers = False
 
 # ------------------------------------------ UI
 how_it_work = """
@@ -71,19 +74,51 @@ with st.container(border=True):
     with settings_columns[1]:
         level = st.radio("Your level:", options=["A1", "A2", "B1", "B2"], index= 2, horizontal=True)
 
-run_button = st.button("Run")
+main_columns = st.columns(2)
 
-task_list : list[GapTest] = st.session_state.task_list
-if task_list:
-    for test in task_list:
-        st.markdown(f"**{test.test_task}**")
-        for i, option in enumerate(test.options):
-            st.markdown(f"{i+1}. {option}")
-        st.markdown(f"Correct answer: {test.options[test.correct_index]}")
-        st.markdown(f"Explanation: {test.explanation}")
-        st.markdown("---")
+with main_columns[0]:
+    next_button = st.button("Generate next test")
+    with st.container(border=True, height=550):
+        task_list : list[GapTest] = st.session_state.task_list
+        if task_list:
+            proposed_answer_list = []
+            for test in task_list:
+                st.markdown(f"**{test.test_task}**")
+                proposed_answer = st.radio("Select option:", 
+                    options=test.options, 
+                    horizontal=True, 
+                    label_visibility="collapsed", 
+                    index= None,
+                    key= test.test_task
+                )
+                proposed_answer_list.append(proposed_answer)
 
-if run_button:
+with main_columns[1]:
+    check_column = st.columns(2)
+    
+    with check_column[0]:
+        check_button = st.button("Check answers")
+
+    with check_column[1]:
+        correct_answers = 0
+        if st.session_state.show_answers:
+            for i, test in enumerate(task_list):
+                correct_answer = test.options[test.correct_index]
+                if correct_answer == proposed_answer_list[i]:
+                    correct_answers += 1
+            st.markdown(f"Correct answers: {correct_answers}/{len(task_list)}")
+            
+    with st.container(border=True, height=550):
+        if st.session_state.show_answers:
+            for i, test in enumerate(task_list):
+                correct_answer = test.options[test.correct_index]
+                diff = Redlines(proposed_answer_list[i], correct_answer)
+                st.markdown(f"**Anwer**: {diff.output_markdown}", unsafe_allow_html=True)
+                st.markdown(f"*{test.translation}*  {test.explanation}")
+        else:
+            st.markdown("Press 'Check answers' to see the results")
+            
+if next_button:
     test_task_list : GapTestList = core.get_gap_test(
         level, 
         main_params.from_lang, 
@@ -92,4 +127,9 @@ if run_button:
     )
     st.session_state.task_list = test_task_list.tests
     st.session_state.token_count += test_task_list.total_tokens
+    st.session_state.show_answers = False
+    st.rerun()
+
+if check_button:
+    st.session_state.show_answers = True
     st.rerun()

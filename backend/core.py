@@ -217,7 +217,7 @@ class Core:
                     "lang_learn"  : to_lang_value,
                     "level"       : level,
                     "test_type"   : test_type,
-                    "random"      : str(random.randint(0, 1000))
+                    "random"      : str(random.randint(0, 100000))
             })
             total_tokens = cb.total_tokens
             total_cost   = cb.total_cost
@@ -229,11 +229,14 @@ class Core:
         
         tests = []
         for test in result_json["tests"]:
-            test_task = test["test_task"]
-            options   = test["options"]
-            correct   = int(test["correct"])
-            explanation = test["explanation"]
-            tests.append(GapTest(test_task, options, correct, explanation))
+            test_task     = test["test_task"]
+            options       = test["options"]
+            correct_index = int(test["correct"])
+            translation   = test["translation"]
+            explanation   = test["explanation"]
+            test = GapTest(test_task, options, correct_index, translation, explanation)
+            test.randomize()
+            tests.append(test)
         
         return GapTestList(tests, total_tokens, total_cost)
         

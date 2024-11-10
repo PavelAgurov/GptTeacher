@@ -14,7 +14,17 @@ class GapTest:
     test_task     : str
     options       : list[str]
     correct_index : int
+    translation   : str
     explanation   : str
+    
+    def randomize(self):
+        """
+            Randomize options
+        """
+        import random
+        correct_answer = self.options[self.correct_index]
+        random.shuffle(self.options)
+        self.correct_index = self.options.index(correct_answer)
 
 @dataclass
 class GapTestList:
