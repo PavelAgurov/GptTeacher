@@ -207,7 +207,9 @@ class Core:
             Get the gap test
         """
         task_prompt = PromptTemplate.from_template(prompt_templates.task01_prompt_template)
-        task_chain  = task_prompt | self.llm_fixed | StrOutputParser()
+        task_chain  = task_prompt | self.llm_generation | StrOutputParser()
+        
+        random_value = str(random.randint(0, 100000))
         
         total_tokens = 0
         total_cost   = 0
@@ -217,7 +219,7 @@ class Core:
                     "lang_learn"  : to_lang_value,
                     "level"       : level,
                     "test_type"   : test_type,
-                    "random"      : str(random.randint(0, 100000))
+                    "random"      : random_value
             })
             total_tokens = cb.total_tokens
             total_cost   = cb.total_cost
@@ -238,5 +240,5 @@ class Core:
             test.randomize()
             tests.append(test)
         
-        return GapTestList(tests, total_tokens, total_cost)
+        return GapTestList(tests, random_value, total_tokens, total_cost)
         

@@ -126,25 +126,29 @@ def get_level_and_type_for_prompt(level, atype):
         return f"Sentence should be complex and have minumum 20 words and subordinate clause and be {atype}."
 
 task01_prompt_template = """
-Please create me test sprachbausteine TELC for level "{level}" in {lang_learn} language.
-There are gaps in the text and need to choose the correct {test_type} for each gap from the list of 3 options in {lang_learn} language.
-Use this {random} value for seed randomization and generate different sentences.
+Please create me sprachbausteine TELC for level "{level}" in {lang_learn} language.
+There are gap in the text and need to choose the correct {test_type} for the gap from the list of 3 options in {lang_learn} language.
+You must generate 5 different tests. Be creative and use different words in the tests.
 
 The test should be about a selection of correct {test_type}.
 The test should be complex enough for "{level}" language level.
+The test must have only one gap in the sentence!
 All answers MUST be in {lang_learn} language, except explanations and translation!
 All options must be different!
+Only one option is correct!
 
 Provide answer in JSON format:
 {{
     "tests":[
-        "test_task": "test task",
+        "test_number" : {random},
+        "test_index" : 1..5,
+        "test_task": "text of test in {lang_learn} language",
         "options": [
-            3 different options in {lang_learn} language
+            3 different options in {lang_learn} language, only one is correct
         ],
         "correct": "index of correct answer",
         "translation": "sentense translation in {lang_my}",
-        "explanation": "detailed explanation of answer in {lang_my} and why another options are wrong"
+        "explanation": "detailed explanation of answer in {lang_my} and why another options are wrong. do not say that they are wrong, explain why they are wrong"
     ]
 }}
 """

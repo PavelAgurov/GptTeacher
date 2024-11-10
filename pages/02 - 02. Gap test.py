@@ -79,19 +79,20 @@ main_columns = st.columns(2)
 with main_columns[0]:
     next_button = st.button("Generate next test")
     with st.container(border=True, height=550):
-        task_list : list[GapTest] = st.session_state.task_list
+        task_list : GapTestList = st.session_state.task_list
         if task_list:
             proposed_answer_list = []
-            for test in task_list:
-                st.markdown(f"**{test.test_task}**")
+            for test_index, test in enumerate(task_list.tests):
+                st.markdown(f"{test_index+1}. **{test.test_task}**")
                 proposed_answer = st.radio("Select option:", 
                     options=test.options, 
                     horizontal=True, 
                     label_visibility="collapsed", 
                     index= None,
-                    key= test.test_task
+                    key= test.test_task + task_list.random_value
                 )
                 proposed_answer_list.append(proposed_answer)
+            st.markdown(f"Test #{task_list.random_value}")
 
 with main_columns[1]:
     check_column = st.columns(2)
@@ -102,18 +103,20 @@ with main_columns[1]:
     with check_column[1]:
         correct_answers = 0
         if st.session_state.show_answers:
-            for i, test in enumerate(task_list):
-                correct_answer = test.options[test.correct_index]
-                if correct_answer == proposed_answer_list[i]:
-                    correct_answers += 1
-            st.markdown(f"Correct answers: {correct_answers}/{len(task_list)}")
+            for i, test in enumerate(task_list.tests):
+                if proposed_answer_list[i]:
+                    correct_answer = test.options[test.correct_index]
+                    if correct_answer == proposed_answer_list[i]:
+                        correct_answers += 1
+            st.markdown(f"Correct answers: {correct_answers}/{len(task_list.tests)}")
             
     with st.container(border=True, height=550):
         if st.session_state.show_answers:
-            for i, test in enumerate(task_list):
-                correct_answer = test.options[test.correct_index]
-                diff = Redlines(proposed_answer_list[i], correct_answer)
-                st.markdown(f"**Anwer**: {diff.output_markdown}", unsafe_allow_html=True)
+            for i, test in enumerate(task_list.tests):
+                if proposed_answer_list[i]:
+                    correct_answer = test.options[test.correct_index]
+                    diff = Redlines(proposed_answer_list[i], correct_answer)
+                    st.markdown(f"**Anwer**: {diff.output_markdown}", unsafe_allow_html=True)
                 st.markdown(f"*{test.translation}*  {test.explanation}")
         else:
             st.markdown("Press 'Check answers' to see the results")
@@ -125,7 +128,7 @@ if next_button:
         main_params.to_lang, 
         test_type
     )
-    st.session_state.task_list = test_task_list.tests
+    st.session_state.task_list = test_task_list
     st.session_state.token_count += test_task_list.total_tokens
     st.session_state.show_answers = False
     st.rerun()
