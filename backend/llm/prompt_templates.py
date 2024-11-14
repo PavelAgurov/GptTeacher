@@ -29,21 +29,21 @@ Provide answer in JSON format:
         "nouns":[
             {{
                 "word": "noun from original sentence",
-                "infinitive": "noun from original sentence in infinitive and singular form", 
+                "infinitive": "noun from original sentence in infinitive and singular form (in {lang_my})", 
                 "translation" : "translation into {lang_learn} of infinitive and singular form with article if article is needed"
             }}
         ],
         "adjectives":[
             {{
                 "word": "adjective from original sentence",
-                "infinitive": "adjective from original sentence in infinitive and singular form. base form, not comparative", 
+                "infinitive": "adjective from original sentence in infinitive and singular form (in {lang_my}). base form, not comparative", 
                 "translation" : "translation into {lang_learn} of infinitive and singular form"
             }}
         ],
         "verbs":[
             {{
                 "word": "verb from original sentence",
-                "infinitive": "verb from original sentence in infinitive and singular form", 
+                "infinitive": "verb from original sentence in infinitive and singular form (in {lang_my})", 
                 "translation" : "translation into {lang_learn} of infinitive and singular form"
             }}
         ],
@@ -56,7 +56,7 @@ Provide answer in JSON format:
         "other":[
             {{
                 "word": "word from original sentence",
-                "infinitive": "word from original sentence in infinitive and singular form", 
+                "infinitive": "word from original sentence in infinitive and singular form (in {lang_my})", 
                 "translation" : "translation into {lang_learn} of infinitive and singular form"
             }}
         ]

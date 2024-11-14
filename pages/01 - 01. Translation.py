@@ -14,6 +14,7 @@ from backend.core import Core
 from backend.classes.proposed_sentense import ProposedSentence
 from backend.classes.validation_result import ValidationResult
 from backend.classes.main_params import MainParams
+from streamlit_backend import streamlit_core
 
 from utils import utils_streamlit, utils_app
 from utils.app_logger import init_streamlit_logger
@@ -24,16 +25,12 @@ logger : logging.Logger = logging.getLogger(__name__)
 
 init_streamlit_logger()
 
-#---------------------------------------- Session
-if 'main_params' not in st.session_state:
-    st.session_state.main_params = MainParams.Empty()
-if 'token_count' not in st.session_state:
-    st.session_state.token_count = 0
-if 'token_cost' not in st.session_state:
-    st.session_state.token_cost = 0
-if 'back_end_core' not in st.session_state:
-    st.session_state.back_end_core = None
+# ------------------------------------------ Core
 
+main_params : MainParams = streamlit_core.init_main_params()
+core : Core = streamlit_core.init_core(main_params)
+
+#---------------------------------------- Session
 if 'proposed_sentence' not in st.session_state:
     st.session_state.proposed_sentence = None
 if 'translation' not in st.session_state:
@@ -58,21 +55,9 @@ header_str = "Gpt Language Trainer"
 st.set_page_config(page_title= header_str, layout="wide")
 st.title(header_str, help= how_it_work)
 
-with st.sidebar:
-    st.markdown(f'Tokens used: {st.session_state.token_count}')
-    st.markdown(f'Tokens cost: {st.session_state.token_cost:.2f}')
-
 utils_streamlit.streamlit_hack_remove_top_space()
 
-# ------------------------------------------ Core
-
-main_params : MainParams = st.session_state.main_params
-
-core : Core = st.session_state.back_end_core
-if not core:
-    if main_params.gpt_key:
-        core = Core(main_params.gpt_key)
-        st.session_state.back_end_core = core
+streamlit_core.draw_sidebar()
 
 # ------------------------------------------ Params
 

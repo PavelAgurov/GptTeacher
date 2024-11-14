@@ -10,6 +10,7 @@ import streamlit as st
 from utils.app_logger import init_streamlit_logger
 
 from backend.classes.main_params import MainParams, LEVEL_INPUT_OPTIONS
+from streamlit_backend import streamlit_core
 
 logger : logging.Logger = logging.getLogger(__name__)
 
@@ -19,8 +20,7 @@ init_streamlit_logger()
 
 #---------------------------------------- Session
 
-if 'main_params' not in st.session_state:
-    st.session_state.main_params = MainParams.Empty()
+main_params : MainParams = streamlit_core.init_main_params()
 
 # ------------------------------------------ UI
 header_str = "Settings"
