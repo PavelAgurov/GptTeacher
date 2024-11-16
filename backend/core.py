@@ -197,6 +197,9 @@ class Core:
         if not proposed_sentence_str or not correct_str:
             return proposed_sentence_str, correct_str
         
+        correct_str = correct_str.strip()
+        proposed_sentence_str = proposed_sentence_str.strip()
+        
         suffix = ""
         correct_suffix = correct_str[-1]
         if correct_suffix in Core.SENTENCE_SUFFIX_LIST:
@@ -208,6 +211,9 @@ class Core:
             proposed_sentence_str = proposed_sentence_str[:-1]
             if not suffix:
                 suffix = user_suffix
+
+        correct_str = correct_str.strip()
+        proposed_sentence_str = proposed_sentence_str.strip()
         
         return proposed_sentence_str, correct_str, suffix
 

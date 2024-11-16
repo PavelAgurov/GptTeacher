@@ -157,6 +157,8 @@ if validation_result and validation_result.proposed_translation == translation:
     
     # sync end of sentence - ? or . or !
     translation_str, correct_str, suffix  = core.fix_suffixes(translation_str, correct_str)
+    translation_str += suffix
+    correct_str     += suffix
 
     diff = Redlines(translation_str, correct_str)
     st.markdown(diff.output_markdown, unsafe_allow_html=True)
