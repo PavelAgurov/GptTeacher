@@ -61,8 +61,9 @@ streamlit_core.draw_sidebar()
 
 # ------------------------------------------ Params
 
-TYPE_INPUT_LIST = ["Statement", "Questions", "Imperative"]
-TYPE_COND_LIST  = ["Normal", "Conditional", "Subordinate clause", "Infinitive constructions"]
+MY_OWN_SENTENCE = "My own sentence"
+TYPE_INPUT_LIST = ["Statement", "Questions", "Imperative", MY_OWN_SENTENCE]
+TYPE_COND_LIST  = ["Normal", "Conditional (if, when, as)", "Subordinate clause", "Infinitive constructions"]
 DICT_TYPE_LIST  = ["Random",  "Topic", "Special dictionary"]
 EXTRA_LIST = ["Help words", "Detailed help"]
 
@@ -93,6 +94,12 @@ proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
 
 with main_columns[0]:
     total_height = 260
+    
+    my_own_sentence = None
+    if type_input == MY_OWN_SENTENCE:
+        with st.container(border=True):
+            my_own_sentence = st.text_input("My sentence:")
+        total_height += 115
     
     special_topic = None
     if dict_type == DICT_TYPE_LIST[1]:
@@ -140,7 +147,7 @@ if len(main_columns) == 2:
                 else:
                     st.text_area("Detailed help:", value= "No detailed help to show yet", label_visibility="collapsed", disabled=True, height= total_height)
 
-validate_button_enabled = proposed_sentence and proposed_sentence.proposed_sentence
+validate_button_enabled = (proposed_sentence and proposed_sentence.proposed_sentence) or (type_input == MY_OWN_SENTENCE)
 validate_button = st.button(label= "Validate", use_container_width=True, disabled= not validate_button_enabled)
 
 validation_result : ValidationResult = st.session_state.validation_result
@@ -149,7 +156,7 @@ if validation_result and validation_result.proposed_translation == translation:
     translation_str = utils_app.remove_double_spaces(translation).strip()
     
     # sync end of sentence - ? or . or !
-    translation_str, correct_str  = core.fix_suffixes(translation_str, correct_str)
+    translation_str, correct_str, suffix  = core.fix_suffixes(translation_str, correct_str)
 
     diff = Redlines(translation_str, correct_str)
     st.markdown(diff.output_markdown, unsafe_allow_html=True)
@@ -165,6 +172,10 @@ if validation_result and validation_result.proposed_translation == translation:
 next_button = st.button(label= "Next" , use_container_width=True)
     
 if next_button:
+    if type_input == MY_OWN_SENTENCE and not my_own_sentence:
+        st.error("Enter your sentence first")
+        st.stop
+    
     if dict_type == DICT_TYPE_LIST[1] and not special_topic:
         st.error("Enter your special topic first")
         st.stop()
@@ -185,15 +196,20 @@ if next_button:
         main_params.from_lang,
         special_dict,
         special_topic,
-        detailed_help_enabled
+        detailed_help_enabled,
+        my_own_sentence
     )
     st.session_state.proposed_sentence = proposed_sentence
-    st.session_state.token_count += proposed_sentence.used_tokens
-    st.session_state.token_cost += proposed_sentence.cost
+    st.session_state.token_count += proposed_sentence.used_tokens 
+    st.session_state.token_cost += proposed_sentence.cost         
     st.rerun()
     
 if validate_button:
     proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
+    
+    if not proposed_sentence and type_input == MY_OWN_SENTENCE:
+        proposed_sentence = ProposedSentence.CustomSentence(my_own_sentence)
+    
     st.session_state.translation = translation
     if not proposed_sentence or not proposed_sentence.proposed_sentence:
         st.error("Click Next to get new sentence before validation")
@@ -209,8 +225,8 @@ if validate_button:
         proposed_sentence.proposed_words_list
     )
     st.session_state.validation_result = validation_result
-    st.session_state.token_count += validation_result.used_tokens
-    st.session_state.token_cost += validation_result.cost
+    st.session_state.token_count += validation_result.used_tokens 
+    st.session_state.token_cost += validation_result.cost         
     st.rerun()
    
 

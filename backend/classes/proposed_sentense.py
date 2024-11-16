@@ -17,3 +17,19 @@ class ProposedSentence:
     detailed_help       : str
     used_tokens         : int
     cost                : float
+    
+    @staticmethod
+    def CustomSentence(
+        proposed_sentence: str
+    ):
+        """
+            Custom Sentence
+        """
+        return ProposedSentence(
+            proposed_sentence,
+            "",
+            [],
+            "",
+            0,
+            0
+        )

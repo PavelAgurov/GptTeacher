@@ -66,7 +66,8 @@ class Core:
             from_lang_value   : str,
             special_dict      : str,
             special_topic     : str,
-            add_detailed_help : bool
+            add_detailed_help : bool,
+            custom_sentence   : str
         ) -> ProposedSentence:
         """"
             Get the next sentence
@@ -74,28 +75,31 @@ class Core:
         total_tokens = 0
         total_cost = 0
         
-        special_dict_str = []
-        if special_dict:
-            special_dict_str.append(f"The sentence MUST contain words from the list: <must_used_words>{special_dict}</must_used_words>")
-        if special_topic:
-            special_dict_str.append(f" The sentence MUST be about the topic '{special_topic}'")
-        special_dict_str = "\n".join(special_dict_str)
-        
-        generation_prompt  = PromptTemplate.from_template(prompt_templates.generation_prompt_template)
-        generation_chain  = generation_prompt | self.llm_generation | StrOutputParser()
-        with get_openai_callback() as cb:
-            generated_sentence_result = generation_chain.invoke({
-                    "level_and_type" : prompt_templates.get_level_and_type_for_prompt(level_input, type_input), 
-                    "lang_learn"     : to_lang_value,
-                    "lang_my"        : from_lang_value,
-                    "random"         : str(random.randint(0, 1000)),
-                    "special_dict"   : special_dict_str
-                })
-            total_tokens += cb.total_tokens
-            total_cost   += cb.total_cost
-        logger.info(f"{generated_sentence_result=}")
-        generated_sentence_json = json.loads(utils_app.get_fixed_json(generated_sentence_result))
-        generated_sentence = generated_sentence_json['generated_sentence']
+        if not custom_sentence:
+            special_dict_str = []
+            if special_dict:
+                special_dict_str.append(f"The sentence MUST contain words from the list: <must_used_words>{special_dict}</must_used_words>")
+            if special_topic:
+                special_dict_str.append(f" The sentence MUST be about the topic '{special_topic}'")
+            special_dict_str = "\n".join(special_dict_str)
+            
+            generation_prompt  = PromptTemplate.from_template(prompt_templates.generation_prompt_template)
+            generation_chain  = generation_prompt | self.llm_generation | StrOutputParser()
+            with get_openai_callback() as cb:
+                generated_sentence_result = generation_chain.invoke({
+                        "level_and_type" : prompt_templates.get_level_and_type_for_prompt(level_input, type_input), 
+                        "lang_learn"     : to_lang_value,
+                        "lang_my"        : from_lang_value,
+                        "random"         : str(random.randint(0, 1000)),
+                        "special_dict"   : special_dict_str
+                    })
+                total_tokens += cb.total_tokens
+                total_cost   += cb.total_cost
+            logger.info(f"{generated_sentence_result=}")
+            generated_sentence_json = json.loads(utils_app.get_fixed_json(generated_sentence_result))
+            generated_sentence = generated_sentence_json['generated_sentence']
+        else:
+            generated_sentence = custom_sentence
 
         translation_prompt = PromptTemplate.from_template(prompt_templates.translate_prompt_template)
         translation_chain  = translation_prompt | self.llm_fixed | StrOutputParser()
@@ -186,21 +190,26 @@ class Core:
 
         return ValidationResult(proposed_translation, correct, explanation, total_tokens, total_cost)                
 
-    def fix_suffixes(self, proposed_sentence_str : str,  correct_str: str):
+    def fix_suffixes(self, proposed_sentence_str : str,  correct_str: str) -> tuple[str, str, str]:
         """"
             Fix the suffixes
         """
         if not proposed_sentence_str or not correct_str:
             return proposed_sentence_str, correct_str
         
+        suffix = ""
         correct_suffix = correct_str[-1]
-        user_suffix    = proposed_sentence_str[-1]
         if correct_suffix in Core.SENTENCE_SUFFIX_LIST:
-            if correct_suffix != user_suffix:
-                if user_suffix in Core.SENTENCE_SUFFIX_LIST:
-                    proposed_sentence_str = proposed_sentence_str[:-1]
-                proposed_sentence_str = proposed_sentence_str + correct_suffix
-        return proposed_sentence_str, correct_str
+            suffix = correct_suffix
+            correct_str = correct_str[:-1]
+            
+        user_suffix    = proposed_sentence_str[-1]
+        if user_suffix in Core.SENTENCE_SUFFIX_LIST:
+            proposed_sentence_str = proposed_sentence_str[:-1]
+            if not suffix:
+                suffix = user_suffix
+        
+        return proposed_sentence_str, correct_str, suffix
 
     def get_gap_test(self, level : str, from_lang_value : str, to_lang_value : str, test_type : str) -> GapTestList:
         """
