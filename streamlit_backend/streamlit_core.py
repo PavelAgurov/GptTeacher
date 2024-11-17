@@ -26,6 +26,9 @@ def init_main_params() -> MainParams:
 def init_core(main_params : MainParams) -> Core:
     """Init core"""
 
+    if 'backend_core' not in st.session_state:
+        st.session_state.backend_core = None
+
     # we should remove core from the session if code of Core was changed
     if 'backend_core_init' not in st.session_state or st.session_state.backend_core_init != str(Core.__init__.__code__):
         if 'backend_core' in st.session_state:
