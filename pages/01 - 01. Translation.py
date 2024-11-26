@@ -62,8 +62,9 @@ streamlit_core.draw_sidebar()
 # ------------------------------------------ Params
 
 MY_OWN_SENTENCE = "My own sentence"
+MY_CUSTOM_RULE = "Custom rule"
 TYPE_INPUT_LIST = ["Statement", "Questions", "Imperative", MY_OWN_SENTENCE]
-TYPE_COND_LIST  = ["Normal", "Conditional (if, when, as)", "Subordinate clause", "Infinitive constructions"]
+TYPE_COND_LIST  = ["Normal", "Conditional (if, when, as)", "Subordinate clause", MY_CUSTOM_RULE]
 DICT_TYPE_LIST  = ["Random",  "Topic", "Special dictionary"]
 EXTRA_LIST = ["Help words", "Detailed help"]
 
@@ -95,6 +96,12 @@ proposed_sentence : ProposedSentence = st.session_state.proposed_sentence
 with main_columns[0]:
     total_height = 260
     
+    my_custom_rule = None
+    if type_cond == MY_CUSTOM_RULE:
+        with st.container(border=True):
+            my_custom_rule = st.text_input("My custom type:")
+        total_height += 115
+    
     my_own_sentence = None
     if type_input == MY_OWN_SENTENCE:
         with st.container(border=True):
@@ -109,9 +116,14 @@ with main_columns[0]:
 
     special_dict = None
     if dict_type == DICT_TYPE_LIST[2]:
-        with st.container(border=True):
-            special_dict = st.text_area("I want to learn words (comma or lines separated):", height=100, value= st.session_state.special_dict)
-        total_height += 170
+        special_dict_values = st.session_state.special_dict
+        special_dict_expanded = not special_dict_values or len(special_dict_values) == 0
+        with st.expander("I want to learn words (comma or lines separated):", expanded= special_dict_expanded):
+            special_dict = st.text_area("Words", height=100, value= special_dict_values, label_visibility="collapsed")
+        if special_dict_expanded:
+            total_height += 170
+        else:
+            total_height += 100
     
     with st.container(border=True):
         proposed_sentence_value = ""
@@ -174,6 +186,11 @@ if validation_result and validation_result.proposed_translation == translation:
 next_button = st.button(label= "Next" , use_container_width=True)
     
 if next_button:
+    
+    if type_cond == MY_CUSTOM_RULE and not my_custom_rule:
+        st.error("Enter your custom rule first")
+        st.stop()
+    
     if type_input == MY_OWN_SENTENCE and not my_own_sentence:
         st.error("Enter your sentence first")
         st.stop
@@ -191,6 +208,9 @@ if next_button:
     st.session_state.special_dict = special_dict
     st.session_state.special_topic = special_topic
     
+    if type_cond == MY_CUSTOM_RULE:
+        type_cond = my_custom_rule
+    
     proposed_sentence = core.get_next_sentence(
         main_params.level,
         f"{type_input} {type_cond}",
@@ -202,8 +222,9 @@ if next_button:
         my_own_sentence
     )
     st.session_state.proposed_sentence = proposed_sentence
-    st.session_state.token_count += proposed_sentence.used_tokens 
-    st.session_state.token_cost += proposed_sentence.cost         
+    if proposed_sentence:
+        st.session_state.token_count += proposed_sentence.used_tokens 
+        st.session_state.token_cost += proposed_sentence.cost         
     st.rerun()
     
 if validate_button:

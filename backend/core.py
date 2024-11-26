@@ -75,19 +75,33 @@ class Core:
         total_tokens = 0
         total_cost = 0
         
+        rules = []
+
         if not custom_sentence:
+            rules.append(f"ALL WORDS of the sentence should be in {from_lang_value}.")
+            
+            if level_input == "Simple":
+                rules.append("Sentence should be very simple - noun, verb and adjective.")
+            elif level_input == "Medium":
+                rules.append("Sentence should have medium complexity and have maximum 10 words.")
+            elif level_input == "Advanced":
+                rules.append("Sentence should be complex and have minumum 20 words.")
+            
+            rules.append(f"The sentence should be {type_input}.")
+
+            if special_topic:
+                rules.append(f" The sentence MUST be about the topic '{special_topic}'")
+        
             special_dict_str = []
             if special_dict:
-                special_dict_str.append(f"The sentence MUST contain words from the list: <must_used_words>{special_dict}</must_used_words>")
-            if special_topic:
-                special_dict_str.append(f" The sentence MUST be about the topic '{special_topic}'")
+                special_dict_str.append(f"The sentence should contain some words from the list: <must_used_words>{special_dict}</must_used_words>, but only in {from_lang_value}.")
             special_dict_str = "\n".join(special_dict_str)
             
             generation_prompt  = PromptTemplate.from_template(prompt_templates.generation_prompt_template)
             generation_chain  = generation_prompt | self.llm_generation | StrOutputParser()
             with get_openai_callback() as cb:
                 generated_sentence_result = generation_chain.invoke({
-                        "level_and_type" : prompt_templates.get_level_and_type_for_prompt(level_input, type_input), 
+                        "rules"          : "\n".join(rules),
                         "lang_learn"     : to_lang_value,
                         "lang_my"        : from_lang_value,
                         "random"         : str(random.randint(0, 1000)),
@@ -140,7 +154,8 @@ class Core:
                 detailed_help_str = detailed_help_chain.invoke({
                         "input_sentence": generated_sentence,
                         "lang_learn"    : to_lang_value,
-                        "lang_my"       : from_lang_value
+                        "lang_my"       : from_lang_value,
+                        "type_input"    : type_input,
                     })
                 total_tokens += cb.total_tokens
                 total_cost   += cb.total_cost

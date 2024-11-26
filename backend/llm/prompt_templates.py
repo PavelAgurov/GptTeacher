@@ -1,15 +1,16 @@
 generation_prompt_template = """/
 Your role is a teacher. I learn {lang_learn}. 
-Make me a random sentence in {lang_my} for translation into {lang_learn}. 
-{level_and_type}
-Use this {random} value for seed randomization and generate different sentences.
-
+Make me a random sentence in {lang_my} for translation into {lang_learn}.
+Rules:
+{rules}
 {special_dict}
+
+Use this {random} value for seed randomization and generate different sentences.
 
 Provide answer in JSON format:
 {{
     "random_word" : "random word in {lang_my}",
-    "generated_sentence" : "sentence in {lang_my} with random word",
+    "generated_sentence" : "Sentence in {lang_my} with random word. All words MUST BE in {lang_my} language",
 }}
 """
 
@@ -102,7 +103,7 @@ Provide answer in JSON format:
 """
 
 detailed_help_prompt_template = """/
-Your role is a teacher. I want to translate text from {lang_my} to {lang_learn}. 
+Your role is a teacher. I want to translate text from {lang_my} to {lang_learn} used rules for {type_input}. 
 Please provide me rules that I should use to translate concrete this text. 
 Describe rules in {lang_my}. 
 
@@ -114,16 +115,6 @@ Provide answer in markdown format:
 ```markdown
 ```
 """
-
-
-
-def get_level_and_type_for_prompt(level, atype):
-    if level == "Simple":
-        return f"Sentence should be very simple - noun, verb and adjective and be {atype}."
-    elif level == "Medium":
-        return f"Sentence should have medium complexity and have maximum 10 words and be {atype}."
-    elif level == "Advanced":
-        return f"Sentence should be complex and have minumum 20 words and subordinate clause and be {atype}."
 
 task01_prompt_template = """
 Please create me sprachbausteine TELC for level "{level}" in {lang_learn} language.

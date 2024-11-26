@@ -24,15 +24,15 @@ class MainParams:
     to_lang   : str
     
     @staticmethod
-    def Empty() -> 'MainParams':
+    def Default() -> 'MainParams':
         """
-            Empty
+            Default
         """
         gpt_key = st.query_params.get("key")
         if gpt_key:
             gpt_key = utils_app.string_from_base64(gpt_key)
-        else:
-            gpt_key = os.environ.get("OPENAI_API_KEY")
+        #else:
+        #    gpt_key = os.environ.get("OPENAI_API_KEY")
             
         level_input = st.query_params.get("level")
         if not level_input:

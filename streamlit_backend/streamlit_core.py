@@ -19,7 +19,8 @@ def init_main_params() -> MainParams:
     """
     if 'main_params' not in st.session_state:
         logger.info("Init new instance of MainParams")
-        st.session_state.main_params = MainParams.Empty()
+        st.session_state.main_params = MainParams.Default()
+        
     return st.session_state.main_params
 
 
@@ -39,10 +40,13 @@ def init_core(main_params : MainParams) -> Core:
         if main_params.gpt_key:
             logger.info("Init new instance of Core")
             core = Core(main_params.gpt_key)
-            st.session_state.back_end_core = core
+            st.session_state.backend_core = core
             st.session_state.backend_core_init = str(Core.__init__.__code__)
+        else:
+            st.session_state.backend_core = None
+            st.session_state.backend_core_init = None
 
-    return st.session_state.back_end_core
+    return st.session_state.backend_core
 
 def draw_sidebar():
     """Draw sidebar"""
